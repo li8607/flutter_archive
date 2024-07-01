@@ -243,22 +243,22 @@ public class SwiftFlutterArchivePlugin: NSObject, FlutterPlugin {
                               jobId: Int?) throws
     {
         var files = [URL]()
-        if let enumerator = FileManager.default.enumerator(
-            at: sourceURL,
-            includingPropertiesForKeys: [.isRegularFileKey],
-            options: recurseSubDirs ?
-                [.skipsHiddenFiles, .skipsPackageDescendants] :
-                [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants])
-        {
-            for case let fileURL as URL in enumerator {
-                let fileAttributes = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
-                if fileAttributes.isRegularFile! {
-                    let url = fileURL.standardizedFileURL
-                    log("Found file: " + url.path)
-                    files.append(url)
-                }
-            }
-        }
+             if let enumerator = FileManager.default.enumerator(
+                 at: sourceURL,
+                 includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+                 options: recurseSubDirs ?
+                     [.skipsHiddenFiles] :
+                     [.skipsHiddenFiles, .skipsSubdirectoryDescendants])
+             {
+                 for case let fileURL as URL in enumerator {
+                     let fileAttributes = try fileURL.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+                     if fileAttributes.isRegularFile! || fileAttributes.isDirectory!{
+                         let url = fileURL.standardizedFileURL
+                         log("Found file: " + url.path)
+                         files.append(url)
+                     }
+                 }
+             }
 
         // create zip archive
         let archive = try Archive(url: zipFileURL, accessMode: .create)
